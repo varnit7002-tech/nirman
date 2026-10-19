@@ -1,3 +1,3 @@
-a = 2
-print("hello")
-print(a)
+import sys
+
+print(sys.prefix)
