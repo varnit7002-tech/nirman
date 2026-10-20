@@ -4,16 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NIRMAN</title>
+    <link rel = "stylesheet" href="style.css">
 </head>
 <body>
-     <div id ="input">
-        <label for="chat-input"></label>
-        <input type="text" placeholder= "chat"="chat-input">
-        <button id = "enter">enter</button>
-     </div>
-    <section id = "microphone">
-        <button>microphone</button>
-    </section>
-    
+     <form id="chat-form">
+    <label for="chat-input">Message to Nirman</label>
+    <input type="text" placeholder="chat" id="chat-input">
+    <button type="button" id="microphone">microphone</button>
+    <button type="submit" id="enter">enter</button>
+    </form>
+    <div class="logo logo-large">NIRMAN</div>
+    <div id="messages" aria-live="polite">
+    <div class="message message-user">I have a 30×40 plot in Bengaluru</div>
+    <div class="message message-nirman">Great! How many people will live in the house?</div>
+    </div>
+    <section id="screen-workspace"></section>              
+          <header>
+              <div class="logo logo-small">NIRMAN</div>
+               <div id="workspace-messages" aria-live="polite">
+                 <div class="message message-nirman">Here is your house. Drag any wall to change a room.</div>
+               </div>
+                 <form id="workspace-chat-form">
+                     <label for="workspace-chat-input">Message to Nirman</label>
+                     <input type="text" placeholder="chat" id="workspace-chat-input">
+                     <button type="button" id="workspace-microphone">microphone</button>
+                     <button type="submit" id="workspace-enter">enter</button>
+                 </form>
+          </header>  
+          <main>
+           <section id="plan-2d">
+            <h2>Floor plan</h2>
+            <section id="view-3d">
+            <h2>3D view</h2>
+            </section>
+            </main>
+            </section>
+         
 </body>
 </html>
