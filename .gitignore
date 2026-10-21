@@ -1,4 +1,6 @@
 
-THIS IS THE FIRST FILE FOR NIRMAN
-MYSELF - VARNIT
-THIS IS START
+venv/
+.env
+__pycache__/
+.DS_Store
+.vscode/
