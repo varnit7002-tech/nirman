@@ -15,3 +15,8 @@ enter button
 microphone button 
 logo which speaks
 
+why we use form over div??
+
+People chatting press Enter. Nobody wants to reach for the mouse after every message. A <div> is just an empty box with no behaviour. A <form> knows that the input and the button go together, so Enter sends.
+
+DAY - 3  22-OCT-2026
