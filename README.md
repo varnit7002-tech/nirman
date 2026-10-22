@@ -4,7 +4,7 @@
 
 Nirman is an AI-powered home-design assistant that helps people transform their ideas into personalized house designs. Building a home involves many decisions, from planning layouts to understanding space and visualizing the final structure. Nirman aims to make this process simpler, more interactive, and easier to understand.
 
-Users can share their plot area, location, budget, family requirements, and design preferences through text or voice. Nirman uses this information to help create and refine **interactive 2D floor plans and 3D house models**, allowing users to explore their future homes and make design changes through natural conversation.
+Users can share their plot area, location, budget, family requirements, and design preferences through text or voice. Nirman uses this information to help create and refine **interactive 2D floor plans and 3D house models**, allowing users to explore their future homes and make design changes through natural conversation.....
 
 ### 💡 What Makes Nirman Different?
 
