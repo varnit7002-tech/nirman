@@ -6,13 +6,14 @@
             "unit": "ft"
         },
         "rules": {
-            "setback": "an object with front {5}, rear 3, left 1.5, right 1.5",
+            "setback": "an object with front 5, rear 3, left 1.5, right 1.5",
             "coveragePercent" : 70  
         },
         "rooms": {
             "id": "room1",
             "name": "room",
-            "length,width": "12,10"
+            "length": 12,
+            "width": 10
         }
     }
 }
