@@ -20,3 +20,24 @@ why we use form over div??
 People chatting press Enter. Nobody wants to reach for the mouse after every message. A <div> is just an empty box with no behaviour. A <form> knows that the input and the button go together, so Enter sends.
 
 DAY - 3  22-OCT-2026
+
+we will make css of 1st page.
+
+BY SUBHAM SIR---
+             ITS NOT JUST A PROJECT.....
+----> WE HAVE TO THINK AS A CIVIL ENGINNER OR A ARCHITECTURE HOW CAN IT CAN HELP THEM.
+----> WE DONT HAVE TO BUILD SOMETHING WHICH DOSENT SOLVE ANY PROBLEM.
+----> FOCUS SHOULD BE ON LEARNING WE DONT HAVE TO VIBECODE.
+
+
+DAYS AFTER THE MID TERM FINISH FROM THE START REFRAMING EVRYTHING:
+
+DAY - 4 4-NOV-2026
+
+DAY 1: Turn it into data
+When:
+What we build:
+Where:
+What to learn for it:
+Who:
+Done when:

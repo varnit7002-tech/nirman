@@ -87,6 +87,7 @@ main{
 #view-3d {
     flex: 2;                  
 }
+
 @media (max-width: 768px) {
 main {
 flex-direction: column;   /* 2D on top, 3D below */
