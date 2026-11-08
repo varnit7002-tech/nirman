@@ -1,69 +1,147 @@
-
 {
   "house": {
     "plot": {
       "width": 20,
       "length": 35,
-      "unit": "ft"
-    },
-    "rules": {
+      "unit": "ft",
+      "roadside": "front",
       "setback": {
-        "front": 5,
-        "rear": 3,
-        "left": 1.5,
-        "right": 1.5,
-        "unit": "ft"
+        "left": 1.5, 
+        "right": 1.5, 
+        "front": 5, 
+        "rear": 3
       },
       "coveragePercent": 70
     },
-    
-"rooms": [
-  {
-    "id": "room_1",
-    "name": "Bedroom 1",
-    "type": "bedroom"
-  },
-  {
-    "id": "room_2",
-    "name": "Bedroom 2",
-    "type": "bedroom"
-  },
-  {
-    "id": "room_3",
-    "name": "Hall",
-    "type": "living_room"
-  },
-  {
-    "id": "room_4",
-    "name": "Kitchen",
-    "type": "kitchen"
-  },
-  {
-    "id": "room_5",
-    "name": "Bathroom 1",
-    "type": "bathroom"
-  },
-  {
-    "id": "room_6",
-    "name": "Bathroom 2",
-    "type": "bathroom"
-  },
-  {
-    "id": "room_7",
-    "name": "Balcony 1",
-    "type": "balcony"
-  },
-  {
-    "id": "room_8",
-    "name": "Balcony 2",
-    "type": "balcony"
-  },
-  {
-    "id": "room_9",
-    "name": "Kitchen Balcony",
-    "type": "balcony"
-  }
-]
-
+    "rooms": [
+      {
+        "id": "room_1",
+        "name": "Bedroom 1",
+        "type": "bedroom",
+        "position": {
+          "x": 2,
+          "y": 5
+        },
+        "dimensions": {
+          "width": 10,
+          "length": 12,
+          "height": 10
+        }
+      },
+      {
+        "id": "room_2",
+        "name": "Bedroom 2",
+        "type": "bedroom",
+        "position": {
+          "x": 12,
+          "y": 5
+        },
+        "dimensions": {
+          "width": 8,
+          "length": 10,
+          "height": 10
+        }
+      },
+      {
+        "id": "room_3",
+        "name": "Hall",
+        "type": "living_room",
+        "position": {
+          "x": 2,
+          "y": 17
+        },
+        "dimensions": {
+          "width": 12,
+          "length": 10,
+          "height": 10
+        }
+      },
+      {
+        "id": "room_4",
+        "name": "Kitchen",
+        "type": "kitchen",
+        "position": {
+          "x": 12,
+          "y": 17
+        },
+        "dimensions": {
+          "width": 8,
+          "length": 8,
+          "height": 10
+        }
+      },
+      {
+        "id": "room_5",
+        "name": "Bathroom 1",
+        "type": "bathroom",
+        "position": {
+          "x": 2,
+          "y": 27
+        },
+        "dimensions": {
+          "width": 5,
+          "length": 6,
+          "height": 10
+        }
+      },
+      {
+        "id": "room_6",
+        "name": "Bathroom 2",
+        "type": "bathroom",
+        "position": {
+          "x": 7,
+          "y": 27
+        },
+        "dimensions": {
+          "width": 5,
+          "length": 6,
+          "height": 10
+        }
+      },
+      {
+        "id": "room_7",
+        "name": "Balcony 1",
+        "type": "balcony",
+        "position": {
+          "x": 2,
+          "y": 0
+        },
+        "dimensions": {
+          "width": 8,
+          "length": 5,
+          "height": 10
+        }
+      },
+      {
+        "id": "room_8",
+        "name": "Balcony 2",
+        "type": "balcony",
+        "position": {
+          "x": 12,
+          "y": 0
+        },
+        "dimensions": {
+          "width": 8,
+          "length": 5,
+          "height": 10
+        }
+      },
+      {
+        "id": "room_9",
+        "name": "Kitchen Balcony",
+        "type": "balcony",
+        "position": {
+          "x": 12,
+          "y": 25
+        },
+        "dimensions": {
+          "width": 8,
+          "length": 4,
+          "height": 10
+        }
+      }
+    ],
+    "unit": "ft",
+    "data_status": "illustrative_estimates"
   }
 }
