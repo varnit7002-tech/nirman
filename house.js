@@ -1,6 +1,5 @@
 const house = 
     {
-  "house": {
     "plot": {
       "width": 20,
       "length": 35,
@@ -103,22 +102,28 @@ const house =
       }
     ],
     "doors": []
-  }
+  
 };
 
 // Function 1
 function getPlayableArea(house) {
-
+    const playableWidth = house.plot.width - house.plot.setbacks.left -house.plot.setbacks.right;
+    const playableLength = house.plot.length - house.plot.setbacks.front -house.plot.setbacks.rear;
+    const area = playableWidth * playableLength;
+    return area;
 }
 
 // Function 2
 function getCoverageLimit(house) {
+    plotArea = house.plot.width * house.plot.length;
+    limit = plotArea * coveragePercent / 100;
+    return limit
 
 }
 
 // Function 3
 function getTotalRoomArea(house) {
-
+    
 }
 
 console.log(getPlayableArea)
