@@ -115,8 +115,8 @@ function getPlayableArea(house) {
 
 // Function 2
 function getCoverageLimit(house) {
-    plotArea = house.plot.width * house.plot.length;
-    limit = plotArea * coveragePercent / 100;
+    const plotArea = house.plot.width * house.plot.length;
+    const limit = plotArea * house.plot.coveragePercent / 100;
     return limit
 
 }
