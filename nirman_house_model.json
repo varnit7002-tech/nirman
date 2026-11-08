@@ -1,19 +1,69 @@
+
 {
-    "house": {
-        "plot": {
-            "width": 20,
-            "length": 35,
-            "unit": "ft"
-        },
-        "rules": {
-            "setback": "an object with front 5, rear 3, left 1.5, right 1.5",
-            "coveragePercent" : 70  
-        },
-        "rooms": {
-            "id": "room1",
-            "name": "room",
-            "length": 12,
-            "width": 10
-        }
-    }
+  "house": {
+    "plot": {
+      "width": 20,
+      "length": 35,
+      "unit": "ft"
+    },
+    "rules": {
+      "setback": {
+        "front": 5,
+        "rear": 3,
+        "left": 1.5,
+        "right": 1.5,
+        "unit": "ft"
+      },
+      "coveragePercent": 70
+    },
+    
+"rooms": [
+  {
+    "id": "room_1",
+    "name": "Bedroom 1",
+    "type": "bedroom"
+  },
+  {
+    "id": "room_2",
+    "name": "Bedroom 2",
+    "type": "bedroom"
+  },
+  {
+    "id": "room_3",
+    "name": "Hall",
+    "type": "living_room"
+  },
+  {
+    "id": "room_4",
+    "name": "Kitchen",
+    "type": "kitchen"
+  },
+  {
+    "id": "room_5",
+    "name": "Bathroom 1",
+    "type": "bathroom"
+  },
+  {
+    "id": "room_6",
+    "name": "Bathroom 2",
+    "type": "bathroom"
+  },
+  {
+    "id": "room_7",
+    "name": "Balcony 1",
+    "type": "balcony"
+  },
+  {
+    "id": "room_8",
+    "name": "Balcony 2",
+    "type": "balcony"
+  },
+  {
+    "id": "room_9",
+    "name": "Kitchen Balcony",
+    "type": "balcony"
+  }
+]
+
+  }
 }
