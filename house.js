@@ -123,9 +123,13 @@ function getCoverageLimit(house) {
 
 // Function 3
 function getTotalRoomArea(house) {
-    
+    let total = 0;
+    for (const room of house.rooms) {
+      total = total + room.width * room.length;
+    }
+    return total;
 }
 
-console.log(getPlayableArea)
-console.log(getCoverageLimit)
-console.log(getTotalRoomArea)
+console.log(getPlayableArea(house))
+console.log(getCoverageLimit(house))
+console.log(getTotalRoomArea(house))
