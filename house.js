@@ -1,5 +1,109 @@
-const house = {
-  // Your complete house JSON data
+const house = 
+    {
+  "house": {
+    "plot": {
+      "width": 20,
+      "length": 35,
+      "unit": "ft",
+      "roadSide": "front",
+      "setbacks": {
+        "left": 1.5,
+        "right": 1.5,
+        "front": 5,
+        "rear": 3
+      },
+      "coveragePercent": 70
+    },
+    "rooms": [
+      {
+        "id": "hall",
+        "name": "Hall",
+        "type": "living",
+        "x": 1.5,
+        "y": 5,
+        "width": 17,
+        "length": 8,
+        "wet": false,
+        "locked": false
+      },
+      {
+        "id": "bed1",
+        "name": "Bedroom 1",
+        "type": "bedroom",
+        "x": 1.5,
+        "y": 13,
+        "width": 9,
+        "length": 9.5,
+        "wet": false,
+        "locked": false
+      },
+      {
+        "id": "bed2",
+        "name": "Bedroom 2 (grandma)",
+        "type": "bedroom",
+        "x": 1.5,
+        "y": 22.5,
+        "width": 9,
+        "length": 9.5,
+        "wet": false,
+        "locked": false
+      },
+      {
+        "id": "pass1",
+        "name": "Passage",
+        "type": "passage",
+        "x": 10.5,
+        "y": 13,
+        "width": 3,
+        "length": 19,
+        "wet": false,
+        "locked": false
+      },
+      {
+        "id": "kitchen",
+        "name": "Kitchen",
+        "type": "kitchen",
+        "x": 13.5,
+        "y": 13,
+        "width": 5,
+        "length": 10,
+        "wet": true,
+        "locked": false
+      },
+      {
+        "id": "bath1",
+        "name": "Bathroom",
+        "type": "bathroom",
+        "x": 13.5,
+        "y": 25,
+        "width": 5,
+        "length": 7,
+        "wet": true,
+        "locked": true
+      }
+    ],
+    "fixtures": [
+      {
+        "id": "shaft1",
+        "type": "shaft",
+        "x": 13.5,
+        "y": 23,
+        "width": 2,
+        "length": 2,
+        "locked": true
+      },
+      {
+        "id": "entry1",
+        "type": "entrance",
+        "x": 8.5,
+        "y": 5,
+        "width": 3,
+        "length": 0,
+        "locked": true
+      }
+    ],
+    "doors": []
+  }
 };
 
 // Function 1
@@ -18,5 +122,5 @@ function getTotalRoomArea(house) {
 }
 
 console.log(getPlayableArea)
-console.log(getPlayableArea)
+console.log(getCoverageLimit)
 console.log(getTotalRoomArea)
