@@ -16,3 +16,7 @@ function getCoverageLimit(house) {
 function getTotalRoomArea(house) {
 
 }
+
+console.log(getPlayableArea)
+console.log(getPlayableArea)
+console.log(getTotalRoomArea)
