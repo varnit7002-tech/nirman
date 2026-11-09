@@ -14,3 +14,8 @@ svg.appendChild(rect);
 }
 
 drawRect(0, 0, house.plot.width, house.plot.length, "none");
+
+for (const room of house.rooms) {
+const svgY = house.plot.length - room.y - room.length;
+drawRect(room.x, svgY, room.width, room.length, "white");
+}
