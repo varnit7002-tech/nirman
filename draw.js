@@ -10,7 +10,7 @@ rect.setAttribute("fill", fill);
 rect.setAttribute("stroke", "black");
 rect.setAttribute("stroke-width", 0.1);
 svg.appendChild(rect);
-return
+return(x, y, width, height, fill)
 }
 let selectionID = null;
 function render() {
@@ -42,9 +42,6 @@ document.addEventListener("mousemove", function(e) {
     }
 });
 
-document.addEventListener("mouseup", function(e) {
-    isDragging = false;
-});
   
 drawRect(0, 0, house.plot.width, house.plot.length, "none");
   
