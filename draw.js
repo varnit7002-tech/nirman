@@ -76,42 +76,6 @@ const svgY = house.plot.length - fixture.y - fixture.length;
 drawRect(fixture.x, svgY, fixture.width, fixture.length, "gray");
 }
 }   
-let isDragging = false;
-let selectedRoom = null;
-
-let offsetX = 0;
-let offsetY = 0;
-
-for (const room of house.rooms) {
-    const roomRect = document.getElementById(room.id);
-
-    roomRect.addEventListener("mousedown", function(e) {
-        isDragging = true;
-        selectedRoom = roomRect;
-
-        const point = svg.createSVGPoint();
-        point.x = e.clientX;
-        point.y = e.clientY;
-
-        const mouse = point.matrixTransform(svg.getScreenCTM().inverse());
-
-        offsetX = mouse.x - Number(roomRect.getAttribute("x"));
-        offsetY = mouse.y - Number(roomRect.getAttribute("y"));
-    });
-}
-
-document.addEventListener("mousemove", function(e) {
-    if (!isDragging) return;
-
-    const point = svg.createSVGPoint();
-    point.x = e.clientX;
-    point.y = e.clientY;
-
-    const mouse = point.matrixTransform(svg.getScreenCTM().inverse());
-
-    selectedRoom.setAttribute("x", mouse.x - offsetX);
-    selectedRoom.setAttribute("y", mouse.y - offsetY);
-});
 
 document.addEventListener("mouseup", function() {
     isDragging = false;
