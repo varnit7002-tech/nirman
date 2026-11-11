@@ -10,11 +10,9 @@ rect.setAttribute("fill", fill);
 rect.setAttribute("stroke", "black");
 rect.setAttribute("stroke-width", 0.1);
 svg.appendChild(rect);
-return(x, y, width, height, fill)
+return(drawRect)
 }
-let selectionID = null;
-function render() {
-svg.innerHTML = ""; 
+ 
 function drawText(x, y, words) {
 const text = document.createElementNS("http://www.w3.org/2000/svg","text");
 text.setAttribute("x", x);
@@ -25,22 +23,9 @@ text.textContent = words;
 svg.appendChild(text);
 }
 
-
-const hallMove = document.getElementById("hall");
-let isDragging = false;
-
-hallMove.addEventListener("mousedown", function(e) {
-    isDragging = true;
-});
-
-document.addEventListener("mousemove", function(e) {
-    if (isDragging === true) {
-        let newX = e.clientX;
-        let newY = e.clientY;
-
-        console.log(newX, newY);
-    }
-});
+let selectionID = null;
+function render() {
+svg.innerHTML = ""; 
 
   
 drawRect(0, 0, house.plot.width, house.plot.length, "none");
@@ -73,11 +58,6 @@ const svgY = house.plot.length - fixture.y - fixture.length;
 drawRect(fixture.x, svgY, fixture.width, fixture.length, "gray");
 }
 }   
-
-document.addEventListener("mouseup", function() {
-    isDragging = false;
-    selectedRoom = null;
-});
 
 
 fetch("nirman_house_model.json")
