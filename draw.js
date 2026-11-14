@@ -43,7 +43,7 @@ for (const room of house.rooms) {
         svgY,
         room.width,
         room.length,
-        room.wet ? "lightblue" : "white"
+        selectionID ? "orange" :room.wet ? "lightblue" : "white"
     );
 
     roomRect.setAttribute("id", room.id);
@@ -51,6 +51,7 @@ for (const room of house.rooms) {
     roomRect.addEventListener("click", function () {
         selectionID = room.id;
         console.log(selectionID)
+        render()
     });
 
     drawText(room.x + room.width / 2, svgY + room.length / 2, room.name);
