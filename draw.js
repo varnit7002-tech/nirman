@@ -43,7 +43,7 @@ for (const room of house.rooms) {
         svgY,
         room.width,
         room.length,
-        selectionID ? "orange" :room.wet ? "lightblue" : "white"
+        selectionID ===room.id ? "orange" :room.wet ? "lightblue" : "white"
     );
 
     roomRect.setAttribute("id", room.id);
