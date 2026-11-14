@@ -10,7 +10,7 @@ rect.setAttribute("fill", fill);
 rect.setAttribute("stroke", "black");
 rect.setAttribute("stroke-width", 0.1);
 svg.appendChild(rect);
-return(drawRect)
+return rect
 }
  
 function drawText(x, y, words) {
@@ -32,7 +32,7 @@ drawRect(0, 0, house.plot.width, house.plot.length, "none");
   
 const s = house.plot.setbacks;
 drawRect(s.left, s.rear, house.plot.width - s.left - s.right,
-house.plot.length - s.front - s.rear, "#e8f5e9");
+house.plot.length - s.front - s.rear, "#2f920a");
 
  
 for (const room of house.rooms) {
@@ -48,6 +48,10 @@ for (const room of house.rooms) {
 
     roomRect.setAttribute("id", room.id);
     roomRect.style.cursor = "move";
+    roomRect.addEventListener("click", function () {
+        selectionID = room.id;
+        console.log(selectionID)
+    });
 
     drawText(room.x + room.width / 2, svgY + room.length / 2, room.name);
 }
