@@ -4,33 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NIRMAN</title>
-    
 </head>
 <body>
-  <svg id = "plan" viewBox="0 0 20 35" width="300">
-    <!-- <rect x="0" y="0" width="20" height="35"
-          fill="none" stroke="black" stroke-width="0.1" />
-    <rect x="1.5" y="22" width="17" height="8"
-          fill="lightyellow" stroke="black" stroke-width="0.1" />
-    <rect x="1.5" y="12.5" width="9" height="9.5"
-          fill="lightgreen" stroke="black" stroke-width="0.1" />
-    <rect x="1.5" y="3" width="9" height="9.5"
-          fill="lightgreen" stroke="black" stroke-width="0.1" />
-    <rect x="10.5" y="3" width="3" height="19"
-          fill="lightgray" stroke="black" stroke-width="0.1" />
-    <rect x="13.5" y="12" width="5" height="10"
-          fill="lightblue" stroke="black" stroke-width="0.1" />
-    <rect x="13.5" y="3" width="5" height="7"
-          fill="lightpink" stroke="black" stroke-width="0.1" />
-    <rect x="13.5" y="10" width="2" height="2"
-          fill="gray" stroke="black" stroke-width="0.1" />
-    <line x1="8.5" y1="30" x2="11.5" y2="30"
-          stroke="orange" stroke-width="0.3" /> -->
-  </svg>
-  
-  
-</body>
-<script src="house.js"></script>
-<script src="draw.js"></script>
+    <h2>NIRMAN - Floor Plan Editor</h2>
 
+    <svg id="plan" viewBox="0 0 20 35" width="300"></svg>
+
+    <div id="roomInfo">
+        <h3>Room Details</h3>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Room</th>
+                    <th>Width</th>
+                    <th>Length</th>
+                    <th>Area</th>
+                </tr>
+            </thead>
+            <tbody id="roomRows"></tbody>
+        </table>
+
+        <h3>Total Room Area: <span id="totalRoomArea">0</span> sq ft</h3>
+    </div>
+
+    <script src="house.js"></script>
+    <script src="draw.js"></script>
+</body>
 </html>
