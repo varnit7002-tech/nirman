@@ -84,6 +84,57 @@
     ],
     
     
-    "doors": []
+    "doors": [
+  {
+    "id": "mainDoor",
+    "roomId": "hall",
+    "wall": "bottom",
+    "offset": 7,
+    "width": 3,
+    "hinge": "start",
+    "isOpen": false,
+    "color": "#D69E36"
+  },
+  {
+    "id": "bed1Door",
+    "roomId": "bed1",
+    "wall": "top",
+    "offset": 3,
+    "width": 3,
+    "hinge": "start",
+    "isOpen": false,
+    "color": "#2878D0"
+  },
+  {
+    "id": "bed2Door",
+    "roomId": "bed2",
+    "wall": "right",
+    "offset": 3,
+    "width": 3,
+    "hinge": "start",
+    "isOpen": false,
+    "color": "#269B70"
+  },
+  {
+    "id": "kitchenDoor",
+    "roomId": "kitchen",
+    "wall": "left",
+    "offset": 3,
+    "width": 3,
+    "hinge": "start",
+    "isOpen": false,
+    "color": "#9B59B6"
+  },
+  {
+    "id": "bath1Door",
+    "roomId": "bath1",
+    "wall": "left",
+    "offset": 2,
+    "width": 2.5,
+    "hinge": "start",
+    "isOpen": false,
+    "color": "#E67E22"
+  }
+]
   }
 }
