@@ -642,7 +642,10 @@ function render() {
 
     updateRoomInfo();
 }
-
+// Update the 3D house whenever the 2D plan changes
+if (window.update3DHouse) {
+    window.update3DHouse(house);
+}
 // Pointer events
 svg.style.touchAction = "none";
 
@@ -665,10 +668,18 @@ fetch("nirman_house_model.json")
 
         return response.json();
     })
-    .then(data => {
-        house = data.house;
-        render();
-    })
+   .then(data => {
+    house = data.house;
+
+    window.nirmanHouse = house;
+
+    render();
+
+    // Send the loaded house to the 3D view
+    if (window.update3DHouse) {
+        window.update3DHouse(house);
+    }
+})
     .catch(error => {
         console.error(error);
         roomRows.textContent =

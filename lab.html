@@ -15,42 +15,55 @@
 </script>
 </head>
 <body>
-    <h2>NIRMAN - Floor Plan Editor</h2>
+   
 
-    <svg id="plan" viewBox="0 0 20 35" width="300"></svg>
+    <h2 id="mainTitle">NIRMAN - House Designer</h2>
 
-    <div id="roomInfo">
-        <h3>Room Details</h3>
-        <table border="1">
-            <thead>
-                <tr>
-                    <th>Room</th>
-                    <th>Width</th>
-                    <th>Length</th>
-                    <th>Area</th>
-                </tr>
-            </thead>
-            <tbody id="roomRows"></tbody>
-        </table>
-
-        <h3>Total Room Area: <span id="totalRoomArea">0</span> sq ft</h3>
-    </div>
-    <h2>3D House View</h2>
-    <div id="threeView"></div>
     <div id="workspace">
 
-    <div id="twoDPanel">
-       
+        <div id="twoDPanel">
+
+            <h2>2D Floor Plan</h2>
+
+            <svg id="plan" viewBox="0 0 20 35" width="300"></svg>
+
+            <div id="roomInfo">
+                <h3>Room Details</h3>
+
+                <table border="1">
+                    <thead>
+                        <tr>
+                            <th>Room</th>
+                            <th>Width</th>
+                            <th>Length</th>
+                            <th>Area</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="roomRows"></tbody>
+                </table>
+
+                <h3>
+                    Total Room Area:
+                    <span id="totalRoomArea">0</span> sq ft
+                </h3>
+            </div>
+
+        </div>
+
+        <div id="threeDPanel">
+
+            <h2>3D House View</h2>
+
+            <div id="threeView"></div>
+
+        </div>
+
     </div>
 
-    <div id="threeDPanel">
-        
-    </div>
-
-    </div>
-    
     <script src="house.js"></script>
     <script src="draw.js"></script>
     <script type="module" src="threeD.js"></script>
+
 </body>
 </html>
