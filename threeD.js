@@ -4,7 +4,9 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 // 1. Get the 3D container from HTML
 const container = document.getElementById("threeView");
-
+console.log("3D container:", container);
+console.log("Container width:", container.clientWidth);
+console.log("Container height:", container.clientHeight);
 // 2. Create the scene
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#eeeeee");
