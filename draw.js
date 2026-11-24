@@ -10,7 +10,6 @@ const MIN_ROOM_SIZE = 2;
 const WALL_TOLERANCE = 0.6;
 const EPSILON = 0.001;
 
-// Draw a rectangle
 function drawRect(x, y, width, height, fill) {
     const rect = document.createElementNS(
         "http://www.w3.org/2000/svg",
@@ -29,7 +28,6 @@ function drawRect(x, y, width, height, fill) {
     return rect;
 }
 
-// Draw text
 function drawText(x, y, words, fontSize = 0.8) {
     const text = document.createElementNS(
         "http://www.w3.org/2000/svg",
@@ -47,12 +45,10 @@ function drawText(x, y, words, fontSize = 0.8) {
     svg.appendChild(text);
 }
 
-// Format numbers
 function formatNumber(value) {
     return Number(value.toFixed(2)).toString();
 }
 
-// Convert mouse position into SVG coordinates
 function getSVGPoint(event) {
     const point = svg.createSVGPoint();
 
@@ -64,7 +60,6 @@ function getSVGPoint(event) {
     );
 }
 
-// Find which wall is being selected
 function getWallAtPoint(room, point) {
     const y = house.plot.length - room.y - room.length;
 
@@ -101,7 +96,6 @@ function getWallAtPoint(room, point) {
         : null;
 }
 
-// Find rooms connected to the selected wall
 function getAdjacentRooms(room, wall) {
     const verticalWall =
         wall === "left" || wall === "right";
@@ -143,7 +137,6 @@ function getAdjacentRooms(room, wall) {
     });
 }
 
-// Start resizing a room
 function startResize(event, room) {
     const point = getSVGPoint(event);
     const wall = getWallAtPoint(room, point);
@@ -162,14 +155,12 @@ function startResize(event, room) {
         startX: point.x,
         startY: point.y,
         adjacentRooms,
-
         original: {
             x: room.x,
             y: room.y,
             width: room.width,
             length: room.length
         },
-
         adjacentOriginals: new Map(
             adjacentRooms.map(other => [
                 other.id,
@@ -187,7 +178,6 @@ function startResize(event, room) {
     render();
 }
 
-// Calculate the possible room layout
 function getCandidateLayout(movement) {
     const d = dragging;
 
@@ -241,7 +231,6 @@ function getCandidateLayout(movement) {
     return { selected, changes };
 }
 
-// Check whether the new layout is valid
 function isValidCandidate(layout) {
     const setbacks = house.plot.setbacks;
 
@@ -300,7 +289,6 @@ function isValidCandidate(layout) {
     return true;
 }
 
-// Find the maximum valid movement
 function findValidMovement(requestedMovement) {
     let low = 0;
     let high = 1;
@@ -322,7 +310,6 @@ function findValidMovement(requestedMovement) {
     return requestedMovement * low;
 }
 
-// Resize rooms
 function resizeRooms(event) {
     if (!dragging) return;
 
@@ -363,7 +350,6 @@ function resizeRooms(event) {
     render();
 }
 
-// Get the SVG coordinates of a door
 function getDoorPosition(door, room) {
     const top = house.plot.length - room.y - room.length;
 
@@ -375,49 +361,32 @@ function getDoorPosition(door, room) {
 
     if (door.wall === "top") {
         wallLength = room.width;
-
         startX = room.x;
         startY = top;
-
         inwardX = 0;
         inwardY = 1;
-    }
-
-    else if (door.wall === "bottom") {
+    } else if (door.wall === "bottom") {
         wallLength = room.width;
-
         startX = room.x;
         startY = top + room.length;
-
         inwardX = 0;
         inwardY = -1;
-    }
-
-    else if (door.wall === "left") {
+    } else if (door.wall === "left") {
         wallLength = room.length;
-
         startX = room.x;
         startY = top;
-
         inwardX = 1;
         inwardY = 0;
-    }
-
-    else if (door.wall === "right") {
+    } else if (door.wall === "right") {
         wallLength = room.length;
-
         startX = room.x + room.width;
         startY = top;
-
         inwardX = -1;
         inwardY = 0;
-    }
-
-    else {
+    } else {
         return null;
     }
 
-    // Keep the door within its room wall
     const doorWidth = Math.min(
         door.width,
         wallLength
@@ -431,7 +400,6 @@ function getDoorPosition(door, room) {
         )
     );
 
-    // Move to the door's starting position
     if (door.wall === "top" || door.wall === "bottom") {
         startX += offset;
     } else {
@@ -447,7 +415,6 @@ function getDoorPosition(door, room) {
     };
 }
 
-// Draw a simple clickable door line
 function drawDoor(door) {
     const room = house.rooms.find(
         room => room.id === door.roomId
@@ -459,12 +426,11 @@ function drawDoor(door) {
 
     if (!position) return;
 
-    let x1 = position.x;
-    let y1 = position.y;
+    const x1 = position.x;
+    const y1 = position.y;
     let x2;
     let y2;
 
-    // Determine the fixed hinge endpoint
     if (door.wall === "top" || door.wall === "bottom") {
         x2 = x1 + position.width;
         y2 = y1;
@@ -508,7 +474,6 @@ function drawDoor(door) {
     line.setAttribute("y1", hingeY);
     line.setAttribute("x2", endX);
     line.setAttribute("y2", endY);
-
     line.setAttribute("stroke", door.color || "#D69E36");
     line.setAttribute("stroke-width", 0.3);
     line.setAttribute("stroke-linecap", "round");
@@ -516,26 +481,23 @@ function drawDoor(door) {
     line.style.cursor = "pointer";
     line.style.pointerEvents = "stroke";
 
-    // Prevent clicking a door from selecting the room underneath
     line.addEventListener("pointerdown", event => {
         event.stopPropagation();
     });
 
-    // Click to open or close the door
     line.addEventListener("click", event => {
         event.stopPropagation();
-
         door.isOpen = !door.isOpen;
-
         render();
     });
 
     svg.appendChild(line);
 }
 
-// Update room information
 function updateRoomInfo() {
     roomRows.replaceChildren();
+
+   
 
     for (const room of house.rooms) {
         const row = document.createElement("tr");
@@ -549,7 +511,6 @@ function updateRoomInfo() {
 
         for (const value of values) {
             const cell = document.createElement("td");
-
             cell.textContent = value;
             row.appendChild(cell);
         }
@@ -562,11 +523,9 @@ function updateRoomInfo() {
     );
 }
 
-// Render the complete floor plan
 function render() {
     svg.replaceChildren();
 
-    // Draw plot
     drawRect(
         0,
         0,
@@ -575,7 +534,6 @@ function render() {
         "none"
     );
 
-    // Draw setback boundary
     const s = house.plot.setbacks;
 
     drawRect(
@@ -586,7 +544,6 @@ function render() {
         "none"
     );
 
-    // Draw rooms
     for (const room of house.rooms) {
         const y =
             house.plot.length - room.y - room.length;
@@ -635,20 +592,17 @@ function render() {
         );
     }
 
-    // Draw doors after rooms
     for (const door of house.doors || []) {
         drawDoor(door);
     }
 
     updateRoomInfo();
-}
-// Update the 3D house whenever the 2D plan changes
-if (window.update3DHouse) {
+    if (window.update3DHouse && house) {
     window.update3DHouse(house);
 }
-// Pointer events
-svg.style.touchAction = "none";
+}
 
+svg.style.touchAction = "none";
 svg.addEventListener("pointermove", resizeRooms);
 
 svg.addEventListener("pointerup", () => {
@@ -659,7 +613,6 @@ svg.addEventListener("pointercancel", () => {
     dragging = null;
 });
 
-// Load JSON data
 fetch("nirman_house_model.json")
     .then(response => {
         if (!response.ok) {
@@ -668,20 +621,11 @@ fetch("nirman_house_model.json")
 
         return response.json();
     })
-   .then(data => {
-    house = data.house;
-
-    window.nirmanHouse = house;
-
-    render();
-
-    // Send the loaded house to the 3D view
-    if (window.update3DHouse) {
-        window.update3DHouse(house);
-    }
-})
+    .then(data => {
+        house = data.house;
+        render();
+    })
     .catch(error => {
         console.error(error);
-        roomRows.textContent =
-            "Unable to load the floor plan.";
+        roomRows.textContent = "Unable to load the floor plan.";
     });
