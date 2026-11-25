@@ -333,6 +333,18 @@ function canMoveTo(x, z) {
 
         const wallBox = new THREE.Box3().setFromObject(mesh);
 
+        // Ignore wall pieces above the player's reachable body height.
+        // This is essential for walking through doorways with a lintel.
+        const playerBottom = 0.1;
+        const playerTop = eyeHeight + 0.5;
+
+        if (
+            wallBox.max.y <= playerBottom ||
+            wallBox.min.y >= playerTop
+        ) {
+            continue;
+        }
+
         if (
             circleIntersectsBoxXZ(
                 x,
@@ -549,6 +561,42 @@ function getDoorPosition(door, room) {
     }
 
     return null;
+}
+
+function getWallOpeningsForWall(wall, house) {
+    const result = [];
+
+    for (const opening of house.wallOpenings || []) {
+        const room = house.rooms.find(
+            room => room.id === opening.roomId
+        );
+
+        if (!room) continue;
+
+        const position = getDoorPosition(opening, room);
+        if (!position) continue;
+
+        if (
+            position.horizontal !== wall.horizontal ||
+            Math.abs(position.coordinate - wall.coordinate) > EPSILON
+        ) {
+            continue;
+        }
+
+        const start = Math.max(wall.start, position.start);
+        const end = Math.min(wall.end, position.end);
+
+        if (end - start <= EPSILON) continue;
+
+        result.push({
+            opening,
+            start,
+            end,
+            type: "opening"
+        });
+    }
+
+    return result;
 }
 
 function getDoorsForWall(wall, house) {
@@ -792,6 +840,8 @@ function createWallWithDoors(wall, house, wallMaterial) {
     const doors = getDoorsForWall(wall, house);
     const windows = getWindowsForWall(wall, house);
 
+    const wallOpenings = getWallOpeningsForWall(wall, house);
+
     const openings = [
         ...doors.map(item => ({
             ...item,
@@ -800,7 +850,8 @@ function createWallWithDoors(wall, house, wallMaterial) {
         ...windows.map(item => ({
             ...item,
             type: "window"
-        }))
+        })),
+        ...wallOpenings
     ].sort((a, b) => a.start - b.start);
 
     let current = wall.start;
