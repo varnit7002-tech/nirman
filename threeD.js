@@ -907,6 +907,22 @@ function createWallWithDoors(wall, house, wallMaterial) {
             createWindowFrame(wall, opening);
         }
 
+        // A wall opening removes only the requested height.
+        // Keep the upper wall section when the opening is not full-height.
+        if (
+            opening.type === "opening" &&
+            Number(opening.opening.height) < WALL_HEIGHT
+        ) {
+            addWallSegment(
+                wall,
+                opening.start,
+                opening.end,
+                Number(opening.opening.height),
+                WALL_HEIGHT,
+                wallMaterial
+            );
+        }
+
         current = opening.end;
     }
 
