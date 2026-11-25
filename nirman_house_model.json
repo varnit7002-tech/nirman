@@ -98,7 +98,7 @@
   {
     "id": "bed1Door",
     "roomId": "bed1",
-    "wall": "top",
+    "wall": "bottom",
     "offset": 3,
     "width": 3,
     "hinge": "start",
@@ -136,6 +136,16 @@
     "color": "#E67E22"
   }
 ],
+ "wallOpenings": [
+    {
+      "id": "hallPassageOpening",
+      "roomId": "hall",
+      "wall": "top",
+      "offset": 9,
+      "width": 3,
+      "height": 10
+    }
+  ],
  "windows": [
     {
         "id": "hallWindow",
