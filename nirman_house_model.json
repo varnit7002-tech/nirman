@@ -102,7 +102,17 @@
     "offset": 3,
     "width": 3,
     "hinge": "start",
-    "isOpen": false,
+    "isOpen": true,
+    "color": "#2878D0"
+  },
+  {
+    "id": "bed1PassageDoor",
+    "roomId": "bed1",
+    "wall": "right",
+    "offset": 3,
+    "width": 3,
+    "hinge": "start",
+    "isOpen": true,
     "color": "#2878D0"
   },
   {
@@ -112,7 +122,7 @@
     "offset": 3,
     "width": 3,
     "hinge": "start",
-    "isOpen": false,
+    "isOpen": true,
     "color": "#269B70"
   },
   {
@@ -122,7 +132,7 @@
     "offset": 3,
     "width": 3,
     "hinge": "start",
-    "isOpen": false,
+    "isOpen": true,
     "color": "#9B59B6"
   },
   {
@@ -132,7 +142,7 @@
     "offset": 2,
     "width": 2.5,
     "hinge": "start",
-    "isOpen": false,
+    "isOpen": true,
     "color": "#E67E22"
   }
 ],
