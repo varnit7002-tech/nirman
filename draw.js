@@ -176,6 +176,7 @@ resetButton.addEventListener("click", () => {
     house = cloneHouse(originalHouse);
 
     window.nirmanHouse = house;
+    refreshOpeningRoomOptions();
 
     selectionID = null;
     selectedWindow = null;
@@ -284,9 +285,203 @@ windowEditor.append(
     windowEditorMessage
 );
 
+
+const wallOpeningEditor = document.createElement("div");
+wallOpeningEditor.style.cssText = `
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    font-family: Arial, sans-serif;
+`;
+
+const wallOpeningTitle = document.createElement("strong");
+wallOpeningTitle.textContent = "Open Wall / Create Passage";
+
+const wallOpeningDescription = document.createElement("p");
+wallOpeningDescription.textContent =
+    "Choose a room wall and define how much wall to open. Opening area is width × height.";
+wallOpeningDescription.style.cssText =
+    "font-size: 13px; color: #666; margin: 6px 0 12px;";
+
+const wallOpeningFields = document.createElement("div");
+wallOpeningFields.style.cssText =
+    "display:flex; flex-wrap:wrap; gap:12px; align-items:end;";
+
+function makeOpeningField(labelText, type = "number") {
+    const label = document.createElement("label");
+    label.style.cssText =
+        "display:flex; flex-direction:column; gap:5px; font-size:13px;";
+    const caption = document.createElement("span");
+    caption.textContent = labelText;
+    const input = document.createElement(type === "select" ? "select" : "input");
+    if (type !== "select") {
+        input.type = "number";
+        input.step = "0.1";
+        input.min = "0";
+    }
+    input.style.cssText =
+        "width:110px; padding:7px; border:1px solid #aaa; border-radius:5px;";
+    label.append(caption, input);
+    return input;
+}
+
+const openingRoomSelect = makeOpeningField("Room", "select");
+const openingWallSelect = makeOpeningField("Wall", "select");
+const openingWidthInput = makeOpeningField("Opening width (ft)");
+const openingHeightInput = makeOpeningField("Opening height (ft)");
+const openingOffsetInput = makeOpeningField("Offset from wall start (ft)");
+openingWidthInput.value = "3";
+openingHeightInput.value = "7";
+openingOffsetInput.value = "0";
+
+for (const [value, label] of [
+    ["top", "Top"], ["bottom", "Bottom"],
+    ["left", "Left"], ["right", "Right"]
+]) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    openingWallSelect.appendChild(option);
+}
+
+const addOpeningButton = document.createElement("button");
+addOpeningButton.textContent = "Add Open Passage";
+addOpeningButton.style.cssText =
+    "padding:8px 12px; border:0; border-radius:5px; background:#2563eb; color:white; cursor:pointer;";
+
+const openingAreaText = document.createElement("p");
+openingAreaText.style.cssText =
+    "font-size:13px; margin:10px 0 0; font-weight:600;";
+openingAreaText.textContent = "Wall area removed: 0 sq ft";
+
+const openingMessage = document.createElement("p");
+openingMessage.style.cssText =
+    "font-size:12px; color:#666; margin:6px 0 0;";
+
+wallOpeningFields.append(
+    openingRoomSelect,
+    openingWallSelect,
+    openingWidthInput,
+    openingHeightInput,
+    openingOffsetInput,
+    addOpeningButton
+);
+
+wallOpeningEditor.append(
+    wallOpeningTitle,
+    wallOpeningDescription,
+    wallOpeningFields,
+    openingAreaText,
+    openingMessage
+);
+
+function updateOpeningAreaPreview() {
+    const width = Number(openingWidthInput.value) || 0;
+    const height = Number(openingHeightInput.value) || 0;
+    openingAreaText.textContent =
+        `Wall area removed: ${formatNumber(width * height)} sq ft`;
+}
+
+openingWidthInput.addEventListener("input", updateOpeningAreaPreview);
+openingHeightInput.addEventListener("input", updateOpeningAreaPreview);
+
+function refreshOpeningRoomOptions() {
+    const previous = openingRoomSelect.value;
+    openingRoomSelect.replaceChildren();
+
+    for (const room of house.rooms || []) {
+        const option = document.createElement("option");
+        option.value = room.id;
+        option.textContent = room.name;
+        openingRoomSelect.appendChild(option);
+    }
+
+    if ([...openingRoomSelect.options].some(option => option.value === previous)) {
+        openingRoomSelect.value = previous;
+    }
+}
+
+function getOpeningWallLength(room, wall) {
+    return wall === "top" || wall === "bottom"
+        ? room.width
+        : room.length;
+}
+
+addOpeningButton.addEventListener("click", () => {
+    if (!house) return;
+
+    const room = house.rooms.find(
+        item => item.id === openingRoomSelect.value
+    );
+
+    if (!room) return;
+
+    const wall = openingWallSelect.value;
+    const wallLength = getOpeningWallLength(room, wall);
+    const width = Number(openingWidthInput.value);
+    const height = Number(openingHeightInput.value);
+    const offset = Number(openingOffsetInput.value);
+
+    if (
+        !Number.isFinite(width) ||
+        !Number.isFinite(height) ||
+        !Number.isFinite(offset) ||
+        width <= 0 ||
+        height <= 0 ||
+        offset < 0 ||
+        offset + width > wallLength + EPSILON ||
+        height > MAX_WALL_HEIGHT
+    ) {
+        openingMessage.textContent =
+            `Invalid opening. Keep it within the ${formatNumber(wallLength)} ft wall and below ${MAX_WALL_HEIGHT} ft high.`;
+        openingMessage.style.color = "#b91c1c";
+        return;
+    }
+
+    house.wallOpenings = house.wallOpenings || [];
+
+    const newOpening = {
+        id: `opening_${Date.now()}`,
+        roomId: room.id,
+        wall,
+        offset,
+        width,
+        height
+    };
+
+    const overlapsExisting = [
+        ...(house.wallOpenings || []),
+        ...(house.doors || []),
+        ...(house.windows || [])
+    ].some(existing => {
+        if (existing.roomId !== room.id || existing.wall !== wall) return false;
+        const a1 = offset;
+        const a2 = offset + width;
+        const b1 = Number(existing.offset);
+        const b2 = b1 + Number(existing.width);
+        return a1 < b2 - EPSILON && b1 < a2 - EPSILON;
+    });
+
+    if (overlapsExisting) {
+        openingMessage.textContent =
+            "This opening overlaps an existing door, window, or wall opening.";
+        openingMessage.style.color = "#b91c1c";
+        return;
+    }
+
+    house.wallOpenings.push(newOpening);
+    openingMessage.textContent =
+        `Added opening in ${room.name}. Removed area: ${formatNumber(width * height)} sq ft. This is a design preview; get structural approval before real construction.`;
+    openingMessage.style.color = "#166534";
+    render();
+});
+
+
 if (svg.parentElement) {
     svg.insertAdjacentElement("afterend", windowEditor);
-    windowEditor.insertAdjacentElement("afterend", planControls);
+    windowEditor.insertAdjacentElement("afterend", wallOpeningEditor);
+    wallOpeningEditor.insertAdjacentElement("afterend", planControls);
 }
 
 // ==========================================
@@ -1111,6 +1306,48 @@ function drawWindow(windowData) {
     }
 }
 
+function drawWallOpening(opening) {
+    const room = house.rooms.find(
+        room => room.id === opening.roomId
+    );
+    if (!room) return;
+
+    const position = getDoorPosition(opening, room);
+    if (!position) return;
+
+    const line = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line"
+    );
+
+    const horizontal =
+        opening.wall === "top" || opening.wall === "bottom";
+
+    line.setAttribute("x1", position.x);
+    line.setAttribute("y1", position.y);
+    line.setAttribute("x2", position.x + (horizontal ? position.width : 0));
+    line.setAttribute("y2", position.y + (horizontal ? 0 : position.width));
+    line.setAttribute("stroke", "white");
+    line.setAttribute("stroke-width", 0.55);
+    line.setAttribute("stroke-linecap", "butt");
+    line.style.pointerEvents = "none";
+    svg.appendChild(line);
+
+    const marker = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line"
+    );
+    marker.setAttribute("x1", position.x);
+    marker.setAttribute("y1", position.y);
+    marker.setAttribute("x2", position.x + (horizontal ? position.width : 0));
+    marker.setAttribute("y2", position.y + (horizontal ? 0 : position.width));
+    marker.setAttribute("stroke", "#2563eb");
+    marker.setAttribute("stroke-width", 0.08);
+    marker.setAttribute("stroke-dasharray", "0.25 0.2");
+    marker.style.pointerEvents = "none";
+    svg.appendChild(marker);
+}
+
 // ==========================================
 // ROOM INFORMATION
 // ==========================================
@@ -1223,6 +1460,10 @@ function render() {
         drawDoor(door);
     }
 
+    for (const opening of house.wallOpenings || []) {
+        drawWallOpening(opening);
+    }
+
     for (const windowData of house.windows || []) {
         drawWindow(windowData);
     }
@@ -1293,6 +1534,7 @@ fetch("nirman_house_model.json")
         house = loadSavedHouse(originalHouse);
 
         window.nirmanHouse = house;
+        refreshOpeningRoomOptions();
 
         // Enable auto-save after loading is complete.
         autosaveEnabled = true;
