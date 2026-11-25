@@ -13,7 +13,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color("#eeeeee");
 
 const camera = new THREE.PerspectiveCamera(
-    50,
+    70,
     container.clientWidth / container.clientHeight,
     0.1,
     1000
@@ -37,7 +37,6 @@ scene.add(directionalLight);
 // CAMERA CONTROLS
 // ==========================================
 
-// Outside camera
 const controls = new OrbitControls(camera, renderer.domElement);
 
 controls.enableDamping = true;
@@ -45,7 +44,6 @@ controls.enableRotate = true;
 controls.enableZoom = true;
 controls.enablePan = true;
 
-// Inside camera
 const pointerControls = new PointerLockControls(
     camera,
     renderer.domElement
@@ -63,12 +61,109 @@ const movementKeys = {
     right: false
 };
 
-const movementSpeed = 8;
-const playerRadius = 0.35;
+// The house model uses feet: 1 Three.js unit = 1 foot.
+const movementSpeed = 3.5;
+const playerRadius = 0.3;
+const eyeHeight = 5.3;
 
 let collisionMeshes = [];
 
 const clock = new THREE.Clock();
+
+// ==========================================
+// 3D OBJECT SELECTION
+// ==========================================
+
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+
+let selected3DObject = null;
+
+function clear3DSelection() {
+    if (!selected3DObject) return;
+
+    if (selected3DObject.userData.originalMaterial) {
+        selected3DObject.material =
+            selected3DObject.userData.originalMaterial;
+
+        delete selected3DObject.userData.originalMaterial;
+    }
+
+    selected3DObject = null;
+}
+
+function select3DObject(object) {
+    if (selected3DObject === object) return;
+
+    clear3DSelection();
+
+    selected3DObject = object;
+
+    if (object.material && !Array.isArray(object.material)) {
+        object.userData.originalMaterial = object.material;
+        object.material = object.material.clone();
+
+        if (object.material.emissive) {
+            object.material.emissive.set("#4b9cff");
+            object.material.emissiveIntensity = 0.45;
+        } else if (object.material.color) {
+            object.material.color.set("#4b9cff");
+        }
+    }
+
+    const selection = {
+        type: object.userData.elementType,
+        id: object.userData.elementId,
+        name: object.userData.elementName || object.userData.elementId
+    };
+
+    window.nirman3DSelection = selection;
+
+    window.dispatchEvent(
+        new CustomEvent("nirman:3d-select", {
+            detail: selection
+        })
+    );
+
+    console.log("3D object selected:", selection);
+}
+
+function handle3DSelection(event) {
+    if (firstPersonMode && !pointerControls.isLocked) return;
+
+    if (firstPersonMode) {
+        // Select from screen centre while pointer is locked.
+        pointer.set(0, 0);
+    } else {
+        const rect = renderer.domElement.getBoundingClientRect();
+
+        pointer.x =
+            ((event.clientX - rect.left) / rect.width) * 2 - 1;
+
+        pointer.y =
+            -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    raycaster.setFromCamera(pointer, camera);
+
+    const hits = raycaster.intersectObjects(
+        houseGroup.children,
+        true
+    );
+
+    const hit = hits.find(
+        item => item.object.userData.selectable
+    );
+
+    if (hit) {
+        select3DObject(hit.object);
+    }
+}
+
+renderer.domElement.addEventListener(
+    "click",
+    handle3DSelection
+);
 
 // ==========================================
 // CAMERA MODE SWITCHING
@@ -97,7 +192,7 @@ function enterFirstPerson() {
 
     camera.position.set(
         startingRoom.x + startingRoom.width / 2,
-        5.5,
+        eyeHeight,
         startingRoom.y + startingRoom.length / 2
     );
 
@@ -129,8 +224,6 @@ pointerControls.addEventListener("unlock", () => {
 
     controls.enabled = true;
 
-    // Point the outside camera in the direction
-    // the user was looking before exiting.
     const direction = new THREE.Vector3();
 
     camera.getWorldDirection(direction);
@@ -143,6 +236,7 @@ pointerControls.addEventListener("unlock", () => {
 
     updateCameraButtons();
 });
+
 // ==========================================
 // FIRST-PERSON MOVEMENT
 // ==========================================
@@ -189,6 +283,29 @@ window.addEventListener("keyup", event => {
     }
 });
 
+// ==========================================
+// COLLISION DETECTION
+// ==========================================
+
+function circleIntersectsBoxXZ(x, z, radius, box) {
+    const closestX = THREE.MathUtils.clamp(
+        x,
+        box.min.x,
+        box.max.x
+    );
+
+    const closestZ = THREE.MathUtils.clamp(
+        z,
+        box.min.z,
+        box.max.z
+    );
+
+    const dx = x - closestX;
+    const dz = z - closestZ;
+
+    return dx * dx + dz * dz < radius * radius;
+}
+
 function canMoveTo(x, z) {
     const house = window.nirmanHouse;
 
@@ -204,25 +321,26 @@ function canMoveTo(x, z) {
         return false;
     }
 
-    const playerBox = new THREE.Box3(
-        new THREE.Vector3(
-            x - playerRadius,
-            0.1,
-            z - playerRadius
-        ),
-        new THREE.Vector3(
-            x + playerRadius,
-            6,
-            z + playerRadius
-        )
-    );
-
     for (const mesh of collisionMeshes) {
+        if (!mesh.visible) continue;
+
+        // An open door panel should not block the doorway.
+        if (mesh.userData.isDoor && mesh.userData.isOpen) {
+            continue;
+        }
+
         mesh.updateMatrixWorld(true);
 
         const wallBox = new THREE.Box3().setFromObject(mesh);
 
-        if (playerBox.intersectsBox(wallBox)) {
+        if (
+            circleIntersectsBoxXZ(
+                x,
+                z,
+                playerRadius,
+                wallBox
+            )
+        ) {
             return false;
         }
     }
@@ -243,7 +361,10 @@ function updateFirstPersonMovement(delta) {
     direction.normalize();
 
     const right = new THREE.Vector3()
-        .crossVectors(direction, new THREE.Vector3(0, 1, 0))
+        .crossVectors(
+            direction,
+            new THREE.Vector3(0, 1, 0)
+        )
         .normalize();
 
     const movement = new THREE.Vector3();
@@ -282,6 +403,11 @@ function updateFirstPersonMovement(delta) {
         camera.position.z = nextZ;
     }
 }
+
+// ==========================================
+// HOUSE MODEL
+// ==========================================
+
 const roomColors = {
     living: "#e6c9a8",
     bedroom: "#b5d8f0",
@@ -300,6 +426,10 @@ const WALL_THICKNESS = 0.2;
 const DOOR_HEIGHT = 7;
 const DOOR_THICKNESS = 0.12;
 const EPSILON = 0.001;
+
+// ==========================================
+// WALL GENERATION
+// ==========================================
 
 function getHouseWalls(rooms) {
     const horizontal = new Map();
@@ -372,6 +502,10 @@ function getHouseWalls(rooms) {
         ...mergeEdges(vertical, false)
     ];
 }
+
+// ==========================================
+// DOOR AND WINDOW POSITIONS
+// ==========================================
 
 function getDoorPosition(door, room) {
     if (door.wall === "top") {
@@ -492,6 +626,10 @@ function getWindowsForWall(wall, house) {
     return result.sort((a, b) => a.start - b.start);
 }
 
+// ==========================================
+// WALL SEGMENTS
+// ==========================================
+
 function addWallSegment(wall, start, end, bottom, top, material) {
     if (
         end - start <= EPSILON ||
@@ -531,12 +669,25 @@ function addWallSegment(wall, start, end, bottom, top, material) {
         );
     }
 
-   houseGroup.add(mesh);
+    houseGroup.add(mesh);
 
-mesh.userData.isCollision = true;
+    mesh.userData.isCollision = true;
+    mesh.userData.selectable = true;
+    mesh.userData.elementType = "wall";
 
-collisionMeshes.push(mesh);
+    mesh.userData.elementId = [
+        wall.horizontal ? "horizontal" : "vertical",
+        wall.coordinate.toFixed(2),
+        start.toFixed(2),
+        end.toFixed(2)
+    ].join("-");
+
+    collisionMeshes.push(mesh);
 }
+
+// ==========================================
+// WINDOW GENERATION
+// ==========================================
 
 function createWindowFrame(wall, opening) {
     const width = opening.end - opening.start;
@@ -589,6 +740,11 @@ function createWindowFrame(wall, opening) {
 
     houseGroup.add(glass);
 
+    glass.userData.selectable = true;
+    glass.userData.elementType = "window";
+    glass.userData.elementId = opening.windowData.id;
+    glass.userData.elementName = "Window";
+
     const frameThickness = 0.12;
 
     addWallSegment(
@@ -627,6 +783,10 @@ function createWindowFrame(wall, opening) {
         frameMaterial
     );
 }
+
+// ==========================================
+// WALLS WITH DOORS AND WINDOWS
+// ==========================================
 
 function createWallWithDoors(wall, house, wallMaterial) {
     const doors = getDoorsForWall(wall, house);
@@ -711,6 +871,10 @@ function createWallWithDoors(wall, house, wallMaterial) {
     }
 }
 
+// ==========================================
+// DOOR PANEL
+// ==========================================
+
 function createDoorPanel(wall, opening) {
     const door = opening.door;
     const width = opening.end - opening.start;
@@ -784,17 +948,28 @@ function createDoorPanel(wall, opening) {
 
     houseGroup.add(pivot);
 
-panel.userData.isCollision = true;
+    panel.userData.isCollision = true;
+    panel.userData.isDoor = true;
+    panel.userData.isOpen = Boolean(door.isOpen);
+    panel.userData.selectable = true;
+    panel.userData.elementType = "door";
+    panel.userData.elementId = door.id;
+    panel.userData.elementName = "Door";
 
-collisionMeshes.push(panel);
+    collisionMeshes.push(panel);
 }
+
+// ==========================================
+// UPDATE 3D HOUSE
+// ==========================================
 
 function update3DHouse(house) {
     if (!house || !house.plot || !house.rooms) return;
 
-   houseGroup.clear();
+    clear3DSelection();
+    houseGroup.clear();
 
-   collisionMeshes = [];
+    collisionMeshes = [];
 
     const plotWidth = house.plot.width;
     const plotLength = house.plot.length;
@@ -822,6 +997,7 @@ function update3DHouse(house) {
 
     houseGroup.add(ground);
 
+    // Generate room floors.
     for (const room of house.rooms) {
         const geometry = new THREE.BoxGeometry(
             room.width,
@@ -842,6 +1018,11 @@ function update3DHouse(house) {
         );
 
         houseGroup.add(floor);
+
+        floor.userData.selectable = true;
+        floor.userData.elementType = "room";
+        floor.userData.elementId = room.id;
+        floor.userData.elementName = room.name;
     }
 
     const wallMaterial = new THREE.MeshStandardMaterial({
@@ -855,6 +1036,7 @@ function update3DHouse(house) {
         createWallWithDoors(wall, house, wallMaterial);
     }
 
+    // Initialize the outside camera only once.
     if (!cameraInitialized) {
         camera.position.set(
             plotWidth * 1.25,
@@ -869,6 +1051,7 @@ function update3DHouse(house) {
         );
 
         controls.update();
+
         cameraInitialized = true;
     }
 
@@ -876,6 +1059,10 @@ function update3DHouse(house) {
 }
 
 window.update3DHouse = update3DHouse;
+
+// ==========================================
+// RESIZE
+// ==========================================
 
 window.addEventListener("resize", () => {
     const width = container.clientWidth;
@@ -888,6 +1075,11 @@ window.addEventListener("resize", () => {
 
     renderer.setSize(width, height);
 });
+
+// ==========================================
+// ANIMATION LOOP
+// ==========================================
+
 function animate() {
     requestAnimationFrame(animate);
 
