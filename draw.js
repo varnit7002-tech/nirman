@@ -196,6 +196,151 @@ resetButton.addEventListener("click", () => {
 
 planControls.append(saveStatus, resetButton);
 
+
+const roomEditor = document.createElement("div");
+roomEditor.style.cssText = `
+    margin-top:12px; padding:12px; border:1px solid #ccc;
+    border-radius:8px; font-family:Arial,sans-serif;
+`;
+const roomEditorTitle = document.createElement("strong");
+roomEditorTitle.textContent = "Room Properties (2D / 3D)";
+const roomEditorDescription = document.createElement("p");
+roomEditorDescription.textContent =
+    "Select a room floor in the 3D view to edit its dimensions.";
+roomEditorDescription.style.cssText =
+    "font-size:13px; color:#666; margin:6px 0 12px;";
+const roomEditorFields = document.createElement("div");
+roomEditorFields.style.cssText =
+    "display:flex; flex-wrap:wrap; gap:12px;";
+function makeRoomDimensionInput(labelText) {
+    const label = document.createElement("label");
+    label.style.cssText =
+        "display:flex; flex-direction:column; gap:5px; font-size:13px;";
+    const caption = document.createElement("span");
+    caption.textContent = labelText;
+    const input = document.createElement("input");
+    input.type = "number";
+    input.step = "0.1";
+    input.min = String(MIN_ROOM_SIZE);
+    input.disabled = true;
+    input.style.cssText =
+        "width:110px; padding:7px; border:1px solid #aaa; border-radius:5px;";
+    label.append(caption, input);
+    return input;
+}
+const roomWidthInput = makeRoomDimensionInput("Width (ft)");
+const roomLengthInput = makeRoomDimensionInput("Length (ft)");
+roomEditorFields.append(
+    roomWidthInput.parentElement,
+    roomLengthInput.parentElement
+);
+const roomEditorMessage = document.createElement("p");
+roomEditorMessage.style.cssText =
+    "font-size:12px; color:#666; margin:10px 0 0;";
+roomEditor.append(
+    roomEditorTitle,
+    roomEditorDescription,
+    roomEditorFields,
+    roomEditorMessage
+);
+
+let selectedRoomForEditing = null;
+
+function updateRoomEditor() {
+    if (!selectedRoomForEditing) {
+        roomEditorDescription.textContent =
+            "Select a room floor in the 3D view to edit its dimensions.";
+        roomWidthInput.disabled = true;
+        roomLengthInput.disabled = true;
+        roomEditorMessage.textContent = "";
+        return;
+    }
+
+    const room = house.rooms.find(
+        item => item.id === selectedRoomForEditing
+    );
+    if (!room) {
+        selectedRoomForEditing = null;
+        updateRoomEditor();
+        return;
+    }
+
+    roomEditorDescription.textContent =
+        `${room.name} — ${formatNumber(room.width * room.length)} sq ft`;
+    roomWidthInput.disabled = false;
+    roomLengthInput.disabled = false;
+    roomWidthInput.value = Number(room.width).toFixed(2);
+    roomLengthInput.value = Number(room.length).toFixed(2);
+}
+
+function applyRoomDimensions() {
+    if (!selectedRoomForEditing) return;
+
+    const room = house.rooms.find(
+        item => item.id === selectedRoomForEditing
+    );
+    if (!room) return;
+
+    const width = Number(roomWidthInput.value);
+    const length = Number(roomLengthInput.value);
+    const setbacks = house.plot.setbacks;
+
+    if (
+        !Number.isFinite(width) ||
+        !Number.isFinite(length) ||
+        width < MIN_ROOM_SIZE ||
+        length < MIN_ROOM_SIZE ||
+        room.x < setbacks.left - EPSILON ||
+        room.y < setbacks.front - EPSILON ||
+        room.x + width > house.plot.width - setbacks.right + EPSILON ||
+        room.y + length > house.plot.length - setbacks.rear + EPSILON
+    ) {
+        roomEditorMessage.textContent =
+            "Invalid dimensions. The room must remain inside the buildable plot and be at least 2 ft in each direction.";
+        roomEditorMessage.style.color = "#b91c1c";
+        updateRoomEditor();
+        return;
+    }
+
+    const candidate = { ...room, width, length };
+    const overlaps = house.rooms.some(other => {
+        if (other.id === room.id) return false;
+        const overlapX =
+            Math.min(candidate.x + candidate.width, other.x + other.width) -
+            Math.max(candidate.x, other.x);
+        const overlapY =
+            Math.min(candidate.y + candidate.length, other.y + other.length) -
+            Math.max(candidate.y, other.y);
+        return overlapX > EPSILON && overlapY > EPSILON;
+    });
+
+    if (overlaps) {
+        roomEditorMessage.textContent =
+            "These dimensions overlap another room. Adjust the dimensions and try again.";
+        roomEditorMessage.style.color = "#b91c1c";
+        updateRoomEditor();
+        return;
+    }
+
+    room.width = width;
+    room.length = length;
+    roomEditorMessage.textContent = "Room dimensions updated.";
+    roomEditorMessage.style.color = "#166534";
+    render();
+}
+
+roomWidthInput.addEventListener("change", applyRoomDimensions);
+roomLengthInput.addEventListener("change", applyRoomDimensions);
+
+window.addEventListener("nirman:3d-select", event => {
+    const selection = event.detail;
+    if (!selection || selection.type !== "room" || !house) return;
+    selectedRoomForEditing = selection.id;
+    selectionID = selection.id;
+    updateRoomEditor();
+    render();
+});
+
 // ==========================================
 // WINDOW EDITOR
 // ==========================================
@@ -479,7 +624,8 @@ addOpeningButton.addEventListener("click", () => {
 
 
 if (svg.parentElement) {
-    svg.insertAdjacentElement("afterend", windowEditor);
+    svg.insertAdjacentElement("afterend", roomEditor);
+    roomEditor.insertAdjacentElement("afterend", windowEditor);
     windowEditor.insertAdjacentElement("afterend", wallOpeningEditor);
     wallOpeningEditor.insertAdjacentElement("afterend", planControls);
 }
@@ -1471,6 +1617,7 @@ function render() {
     updateRoomInfo();
 
     updateWindowEditor();
+    updateRoomEditor();
 
     // Keep the 3D model synchronized.
     if (window.update3DHouse && house) {
