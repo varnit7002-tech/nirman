@@ -135,6 +135,54 @@
     "isOpen": false,
     "color": "#E67E22"
   }
+],
+ "windows": [
+    {
+        "id": "hallWindow",
+        "roomId": "hall",
+        "wall": "right",
+        "offset": 2,
+        "width": 3,
+        "height": 4,
+        "sillHeight": 3
+    },
+    {
+        "id": "bed1Window",
+        "roomId": "bed1",
+        "wall": "left",
+        "offset": 2,
+        "width": 4,
+        "height": 4,
+        "sillHeight": 3
+    },
+    {
+        "id": "bed2Window",
+        "roomId": "bed2",
+        "wall": "left",
+        "offset": 2,
+        "width": 4,
+        "height": 4,
+        "sillHeight": 3
+    },
+    {
+        "id": "kitchenWindow",
+        "roomId": "kitchen",
+        "wall": "right",
+        "offset": 2,
+        "width": 3,
+        "height": 4,
+        "sillHeight": 3
+    },
+    {
+        "id": "bathWindow",
+        "roomId": "bath1",
+        "wall": "right",
+        "offset": 2,
+        "width": 2.5,
+        "height": 3,
+        "sillHeight": 4
+    }
 ]
+
   }
 }

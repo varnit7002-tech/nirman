@@ -54,7 +54,6 @@ const DOOR_HEIGHT = 7;
 const DOOR_THICKNESS = 0.12;
 const EPSILON = 0.001;
 
-// Collect all room boundary edges and merge connected edges.
 function getHouseWalls(rooms) {
     const horizontal = new Map();
     const vertical = new Map();
@@ -127,7 +126,6 @@ function getHouseWalls(rooms) {
     ];
 }
 
-// Convert JSON door positions into 3D wall coordinates.
 function getDoorPosition(door, room) {
     if (door.wall === "top") {
         return {
@@ -172,7 +170,6 @@ function getDoorPosition(door, room) {
     return null;
 }
 
-// Find all doors belonging to a particular wall.
 function getDoorsForWall(wall, house) {
     const result = [];
 
@@ -210,7 +207,44 @@ function getDoorsForWall(wall, house) {
     return result.sort((a, b) => a.start - b.start);
 }
 
-// Create one wall section.
+function getWindowsForWall(wall, house) {
+    const result = [];
+
+    for (const windowData of house.windows || []) {
+        const room = house.rooms.find(
+            room => room.id === windowData.roomId
+        );
+
+        if (!room) continue;
+
+        const position = getDoorPosition(windowData, room);
+
+        if (!position) continue;
+
+        if (
+            position.horizontal !== wall.horizontal ||
+            Math.abs(position.coordinate - wall.coordinate) > EPSILON
+        ) {
+            continue;
+        }
+
+        const start = Math.max(wall.start, position.start);
+        const end = Math.min(wall.end, position.end);
+
+        if (end - start <= EPSILON) continue;
+
+        result.push({
+            windowData,
+            start,
+            end,
+            sillHeight: windowData.sillHeight,
+            height: windowData.height
+        });
+    }
+
+    return result.sort((a, b) => a.start - b.start);
+}
+
 function addWallSegment(wall, start, end, bottom, top, material) {
     if (
         end - start <= EPSILON ||
@@ -253,13 +287,118 @@ function addWallSegment(wall, start, end, bottom, top, material) {
     houseGroup.add(mesh);
 }
 
-// Create a wall while leaving openings for doors.
+function createWindowFrame(wall, opening) {
+    const width = opening.end - opening.start;
+    const height = opening.height;
+    const center = (opening.start + opening.end) / 2;
+    const centerY = opening.sillHeight + height / 2;
+
+    const glassMaterial = new THREE.MeshPhysicalMaterial({
+        color: "#83c9e8",
+        transparent: true,
+        opacity: 0.55,
+        roughness: 0.15
+    });
+
+    const frameMaterial = new THREE.MeshStandardMaterial({
+        color: "#f5f5f5",
+        roughness: 0.5
+    });
+
+    const glassGeometry = wall.horizontal
+        ? new THREE.BoxGeometry(
+            width - 0.15,
+            height - 0.15,
+            0.06
+        )
+        : new THREE.BoxGeometry(
+            0.06,
+            height - 0.15,
+            width - 0.15
+        );
+
+    const glass = new THREE.Mesh(
+        glassGeometry,
+        glassMaterial
+    );
+
+    if (wall.horizontal) {
+        glass.position.set(
+            center,
+            centerY,
+            wall.coordinate
+        );
+    } else {
+        glass.position.set(
+            wall.coordinate,
+            centerY,
+            center
+        );
+    }
+
+    houseGroup.add(glass);
+
+    const frameThickness = 0.12;
+
+    addWallSegment(
+        wall,
+        opening.start,
+        opening.start + frameThickness,
+        opening.sillHeight,
+        opening.sillHeight + height,
+        frameMaterial
+    );
+
+    addWallSegment(
+        wall,
+        opening.end - frameThickness,
+        opening.end,
+        opening.sillHeight,
+        opening.sillHeight + height,
+        frameMaterial
+    );
+
+    addWallSegment(
+        wall,
+        opening.start,
+        opening.end,
+        opening.sillHeight,
+        opening.sillHeight + frameThickness,
+        frameMaterial
+    );
+
+    addWallSegment(
+        wall,
+        opening.start,
+        opening.end,
+        opening.sillHeight + height - frameThickness,
+        opening.sillHeight + height,
+        frameMaterial
+    );
+}
+
 function createWallWithDoors(wall, house, wallMaterial) {
     const doors = getDoorsForWall(wall, house);
+    const windows = getWindowsForWall(wall, house);
+
+    const openings = [
+        ...doors.map(item => ({
+            ...item,
+            type: "door"
+        })),
+        ...windows.map(item => ({
+            ...item,
+            type: "window"
+        }))
+    ].sort((a, b) => a.start - b.start);
 
     let current = wall.start;
 
-    for (const opening of doors) {
+    for (const opening of openings) {
+        if (opening.start < current - EPSILON) {
+            continue;
+        }
+
         if (opening.start > current + EPSILON) {
             addWallSegment(
                 wall,
@@ -271,19 +410,42 @@ function createWallWithDoors(wall, house, wallMaterial) {
             );
         }
 
-        // Wall section above the door opening.
-        addWallSegment(
-            wall,
-            opening.start,
-            opening.end,
-            DOOR_HEIGHT,
-            WALL_HEIGHT,
-            wallMaterial
-        );
+        if (opening.type === "door") {
+            addWallSegment(
+                wall,
+                opening.start,
+                opening.end,
+                DOOR_HEIGHT,
+                WALL_HEIGHT,
+                wallMaterial
+            );
 
-        createDoorPanel(wall, opening);
+            createDoorPanel(wall, opening);
+        }
 
-        current = Math.max(current, opening.end);
+        if (opening.type === "window") {
+            addWallSegment(
+                wall,
+                opening.start,
+                opening.end,
+                0,
+                opening.sillHeight,
+                wallMaterial
+            );
+
+            addWallSegment(
+                wall,
+                opening.start,
+                opening.end,
+                opening.sillHeight + opening.height,
+                WALL_HEIGHT,
+                wallMaterial
+            );
+
+            createWindowFrame(wall, opening);
+        }
+
+        current = opening.end;
     }
 
     if (current < wall.end - EPSILON) {
@@ -298,7 +460,6 @@ function createWallWithDoors(wall, house, wallMaterial) {
     }
 }
 
-// Create a door panel with a working hinge.
 function createDoorPanel(wall, opening) {
     const door = opening.door;
     const width = opening.end - opening.start;
@@ -373,7 +534,6 @@ function createDoorPanel(wall, opening) {
     houseGroup.add(pivot);
 }
 
-// Main 3D update function.
 function update3DHouse(house) {
     if (!house || !house.plot || !house.rooms) return;
 
@@ -382,7 +542,6 @@ function update3DHouse(house) {
     const plotWidth = house.plot.width;
     const plotLength = house.plot.length;
 
-    // Ground
     const groundGeometry = new THREE.BoxGeometry(
         plotWidth,
         0.2,
@@ -406,7 +565,6 @@ function update3DHouse(house) {
 
     houseGroup.add(ground);
 
-    // Room floors
     for (const room of house.rooms) {
         const geometry = new THREE.BoxGeometry(
             room.width,
@@ -429,7 +587,6 @@ function update3DHouse(house) {
         houseGroup.add(floor);
     }
 
-    // Connected walls with door openings.
     const wallMaterial = new THREE.MeshStandardMaterial({
         color: "#eeeeee",
         roughness: 0.85
@@ -441,7 +598,6 @@ function update3DHouse(house) {
         createWallWithDoors(wall, house, wallMaterial);
     }
 
-    // Initialize camera once.
     if (!cameraInitialized) {
         camera.position.set(
             plotWidth * 1.25,
@@ -464,7 +620,6 @@ function update3DHouse(house) {
 
 window.update3DHouse = update3DHouse;
 
-// Resize renderer.
 window.addEventListener("resize", () => {
     const width = container.clientWidth;
     const height = container.clientHeight;
@@ -477,7 +632,6 @@ window.addEventListener("resize", () => {
     renderer.setSize(width, height);
 });
 
-// Animation.
 function animate() {
     requestAnimationFrame(animate);
 
@@ -487,7 +641,6 @@ function animate() {
 
 animate();
 
-// Support an already-loaded house.
 if (window.nirmanHouse) {
     update3DHouse(window.nirmanHouse);
 }
