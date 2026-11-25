@@ -93,6 +93,48 @@ function loadSavedHouse(originalData) {
             throw new Error("Invalid saved house data");
         }
 
+        // Migrate older browser-saved designs so new passage data
+        // from the original model is not lost when localStorage is restored.
+        parsedData.wallOpenings = Array.isArray(parsedData.wallOpenings)
+            ? parsedData.wallOpenings
+            : cloneHouse(originalData.wallOpenings || []);
+
+        parsedData.doors = Array.isArray(parsedData.doors)
+            ? parsedData.doors
+            : [];
+
+        for (const defaultDoor of originalData.doors || []) {
+            const savedDoor = parsedData.doors.find(
+                door => door.id === defaultDoor.id
+            );
+
+            if (!savedDoor) {
+                parsedData.doors.push(cloneHouse(defaultDoor));
+            }
+        }
+
+        const oldBedroomDoor = parsedData.doors.find(
+            door => door.id === "bed1Door"
+        );
+
+        if (oldBedroomDoor && oldBedroomDoor.wall === "top") {
+            oldBedroomDoor.wall = "bottom";
+            oldBedroomDoor.offset = 3;
+        }
+
+        for (const doorId of [
+            "bed1Door",
+            "bed1PassageDoor",
+            "bed2Door",
+            "kitchenDoor",
+            "bath1Door"
+        ]) {
+            const door = parsedData.doors.find(
+                item => item.id === doorId
+            );
+            if (door) door.isOpen = true;
+        }
+
         updateSaveStatus(
             "Previous design restored",
             "green"
