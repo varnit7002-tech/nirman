@@ -1,6 +1,7 @@
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 
 const container = document.getElementById("threeView");
 
@@ -32,9 +33,255 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
 directionalLight.position.set(15, 30, 20);
 scene.add(directionalLight);
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
+// ==========================================
+// CAMERA CONTROLS
+// ==========================================
 
+// Outside camera
+const controls = new OrbitControls(camera, renderer.domElement);
+
+controls.enableDamping = true;
+controls.enableRotate = true;
+controls.enableZoom = true;
+controls.enablePan = true;
+
+// Inside camera
+const pointerControls = new PointerLockControls(
+    camera,
+    renderer.domElement
+);
+
+let firstPersonMode = false;
+
+const outsideButton = document.getElementById("outsideViewBtn");
+const insideButton = document.getElementById("insideViewBtn");
+
+const movementKeys = {
+    forward: false,
+    backward: false,
+    left: false,
+    right: false
+};
+
+const movementSpeed = 8;
+const playerRadius = 0.35;
+
+let collisionMeshes = [];
+
+const clock = new THREE.Clock();
+
+// ==========================================
+// CAMERA MODE SWITCHING
+// ==========================================
+
+function updateCameraButtons() {
+    outsideButton.classList.toggle(
+        "active",
+        !firstPersonMode
+    );
+
+    insideButton.classList.toggle(
+        "active",
+        firstPersonMode
+    );
+}
+
+function enterFirstPerson() {
+    if (!window.nirmanHouse) return;
+
+    const rooms = window.nirmanHouse.rooms;
+
+    if (!rooms || rooms.length === 0) return;
+
+    const startingRoom = rooms[0];
+
+    camera.position.set(
+        startingRoom.x + startingRoom.width / 2,
+        5.5,
+        startingRoom.y + startingRoom.length / 2
+    );
+
+    controls.enabled = false;
+
+    firstPersonMode = true;
+
+    pointerControls.lock();
+
+    updateCameraButtons();
+}
+
+function exitFirstPerson() {
+    if (pointerControls.isLocked) {
+        pointerControls.unlock();
+    } else {
+        firstPersonMode = false;
+        controls.enabled = true;
+        updateCameraButtons();
+    }
+}
+
+outsideButton.addEventListener("click", exitFirstPerson);
+
+insideButton.addEventListener("click", enterFirstPerson);
+
+pointerControls.addEventListener("unlock", () => {
+    firstPersonMode = false;
+
+    controls.enabled = true;
+
+    // Point the outside camera in the direction
+    // the user was looking before exiting.
+    const direction = new THREE.Vector3();
+
+    camera.getWorldDirection(direction);
+
+    controls.target.copy(camera.position).add(
+        direction.multiplyScalar(5)
+    );
+
+    controls.update();
+
+    updateCameraButtons();
+});
+// ==========================================
+// FIRST-PERSON MOVEMENT
+// ==========================================
+
+window.addEventListener("keydown", event => {
+    if (!firstPersonMode) return;
+
+    switch (event.code) {
+        case "KeyW":
+            movementKeys.forward = true;
+            break;
+
+        case "KeyS":
+            movementKeys.backward = true;
+            break;
+
+        case "KeyA":
+            movementKeys.left = true;
+            break;
+
+        case "KeyD":
+            movementKeys.right = true;
+            break;
+    }
+});
+
+window.addEventListener("keyup", event => {
+    switch (event.code) {
+        case "KeyW":
+            movementKeys.forward = false;
+            break;
+
+        case "KeyS":
+            movementKeys.backward = false;
+            break;
+
+        case "KeyA":
+            movementKeys.left = false;
+            break;
+
+        case "KeyD":
+            movementKeys.right = false;
+            break;
+    }
+});
+
+function canMoveTo(x, z) {
+    const house = window.nirmanHouse;
+
+    if (!house) return false;
+
+    // Keep the player inside the plot.
+    if (
+        x < playerRadius ||
+        z < playerRadius ||
+        x > house.plot.width - playerRadius ||
+        z > house.plot.length - playerRadius
+    ) {
+        return false;
+    }
+
+    const playerBox = new THREE.Box3(
+        new THREE.Vector3(
+            x - playerRadius,
+            0.1,
+            z - playerRadius
+        ),
+        new THREE.Vector3(
+            x + playerRadius,
+            6,
+            z + playerRadius
+        )
+    );
+
+    for (const mesh of collisionMeshes) {
+        mesh.updateMatrixWorld(true);
+
+        const wallBox = new THREE.Box3().setFromObject(mesh);
+
+        if (playerBox.intersectsBox(wallBox)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function updateFirstPersonMovement(delta) {
+    if (!firstPersonMode || !pointerControls.isLocked) {
+        return;
+    }
+
+    const direction = new THREE.Vector3();
+
+    camera.getWorldDirection(direction);
+
+    direction.y = 0;
+    direction.normalize();
+
+    const right = new THREE.Vector3()
+        .crossVectors(direction, new THREE.Vector3(0, 1, 0))
+        .normalize();
+
+    const movement = new THREE.Vector3();
+
+    if (movementKeys.forward) {
+        movement.add(direction);
+    }
+
+    if (movementKeys.backward) {
+        movement.sub(direction);
+    }
+
+    if (movementKeys.right) {
+        movement.add(right);
+    }
+
+    if (movementKeys.left) {
+        movement.sub(right);
+    }
+
+    if (movement.lengthSq() === 0) return;
+
+    movement.normalize().multiplyScalar(
+        movementSpeed * delta
+    );
+
+    const nextX = camera.position.x + movement.x;
+    const nextZ = camera.position.z + movement.z;
+
+    // Check X and Z separately to allow wall sliding.
+    if (canMoveTo(nextX, camera.position.z)) {
+        camera.position.x = nextX;
+    }
+
+    if (canMoveTo(camera.position.x, nextZ)) {
+        camera.position.z = nextZ;
+    }
+}
 const roomColors = {
     living: "#e6c9a8",
     bedroom: "#b5d8f0",
@@ -284,7 +531,11 @@ function addWallSegment(wall, start, end, bottom, top, material) {
         );
     }
 
-    houseGroup.add(mesh);
+   houseGroup.add(mesh);
+
+mesh.userData.isCollision = true;
+
+collisionMeshes.push(mesh);
 }
 
 function createWindowFrame(wall, opening) {
@@ -532,12 +783,18 @@ function createDoorPanel(wall, opening) {
     }
 
     houseGroup.add(pivot);
+
+panel.userData.isCollision = true;
+
+collisionMeshes.push(panel);
 }
 
 function update3DHouse(house) {
     if (!house || !house.plot || !house.rooms) return;
 
-    houseGroup.clear();
+   houseGroup.clear();
+
+   collisionMeshes = [];
 
     const plotWidth = house.plot.width;
     const plotLength = house.plot.length;
@@ -631,11 +888,17 @@ window.addEventListener("resize", () => {
 
     renderer.setSize(width, height);
 });
-
 function animate() {
     requestAnimationFrame(animate);
 
-    controls.update();
+    const delta = Math.min(clock.getDelta(), 0.05);
+
+    if (firstPersonMode) {
+        updateFirstPersonMovement(delta);
+    } else {
+        controls.update();
+    }
+
     renderer.render(scene, camera);
 }
 
