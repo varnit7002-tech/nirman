@@ -1,4 +1,3 @@
-
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
@@ -6,7 +5,7 @@ import { PointerLockControls } from "three/addons/controls/PointerLockControls.j
 const container = document.getElementById("threeView");
 
 if (!container) {
-    throw new Error("3D container not found");
+    throw new Error("empty hai");
 }
 
 const scene = new THREE.Scene();
@@ -20,22 +19,19 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 const renderer = new THREE.WebGLRenderer({
-    antialias: true
+    antialias: true // AI GENERATED
 });
 
 renderer.setSize(container.clientWidth, container.clientHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // AI GENERATED
 container.appendChild(renderer.domElement);
 
-scene.add(new THREE.AmbientLight(0xffffff, 2));
+scene.add(new THREE.AmbientLight(0xffffff, 1.5));
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-directionalLight.position.set(15, 30, 20);
+directionalLight.position.set(30, 60, 20);
 scene.add(directionalLight);
 
-// ==========================================
-// CAMERA CONTROLS
-// ==========================================
 
 const controls = new OrbitControls(camera, renderer.domElement);
 
@@ -61,21 +57,13 @@ const movementKeys = {
     right: false
 };
 
-// The house model uses feet: 1 Three.js unit = 1 foot.
 const movementSpeed = 3.5;
-const playerRadius = 0.3;
+const playerRadius = 0.3; // its important to add before this player is getting glitch in wall
 const eyeHeight = 5.3;
 
 let collisionMeshes = [];
 
-const clock = new THREE.Clock();
-
-// ==========================================
-// 3D OBJECT SELECTION
-// ==========================================
-
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
+const clock = new THREE.Clock(); // ai generated  its important without we cant able to keep a particular area in which we have to render
 
 let selected3DObject = null;
 
@@ -93,46 +81,27 @@ function clear3DSelection() {
 }
 
 function select3DObject(object) {
-    if (selected3DObject === object) return;
+    if (selected3DObject === object) return; // it avoids unnecesaary selection of same element  
 
     clear3DSelection();
 
     selected3DObject = object;
 
-    if (object.material && !Array.isArray(object.material)) {
-        object.userData.originalMaterial = object.material;
-        object.material = object.material.clone();
-
-        if (object.material.emissive) {
-            object.material.emissive.set("#4b9cff");
-            object.material.emissiveIntensity = 0.45;
-        } else if (object.material.color) {
-            object.material.color.set("#4b9cff");
-        }
-    }
-
-    const selection = {
-        type: object.userData.elementType,
-        id: object.userData.elementId,
-        name: object.userData.elementName || object.userData.elementId
-    };
-
     window.nirman3DSelection = selection;
 
-    window.dispatchEvent(
+    window.dispatchEvent( // its the sender which send the call that this thing is selected to the event lisetener 
         new CustomEvent("nirman:3d-select", {
             detail: selection
         })
     );
 
     console.log("3D object selected:", selection);
-}
-
+} 
+// selection coardinates has been taken with the help of AI formula from codex
 function handle3DSelection(event) {
     if (firstPersonMode && !pointerControls.isLocked) return;
 
     if (firstPersonMode) {
-        // Select from screen centre while pointer is locked.
         pointer.set(0, 0);
     } else {
         const rect = renderer.domElement.getBoundingClientRect();
@@ -143,34 +112,15 @@ function handle3DSelection(event) {
         pointer.y =
             -((event.clientY - rect.top) / rect.height) * 2 + 1;
     }
-
-    raycaster.setFromCamera(pointer, camera);
-
-    const hits = raycaster.intersectObjects(
-        houseGroup.children,
-        true
-    );
-
-    const hit = hits.find(
-        item => item.object.userData.selectable
-    );
-
-    if (hit) {
-        select3DObject(hit.object);
-    }
 }
 
 renderer.domElement.addEventListener(
     "click",
-    handle3DSelection
+    handle3DSelection // we passed the value handle3DSelection not handle3DSelection() becz we want it to render with our code not immedieatly.
 );
-
-// ==========================================
-// CAMERA MODE SWITCHING
-// ==========================================
-
+// camera mode switching 
 function updateCameraButtons() {
-    outsideButton.classList.toggle(
+    outsideButton.classList.toggle( // toggle() can add or remove a CSS class.
         "active",
         !firstPersonMode
     );
@@ -216,7 +166,6 @@ function exitFirstPerson() {
 }
 
 outsideButton.addEventListener("click", exitFirstPerson);
-
 insideButton.addEventListener("click", enterFirstPerson);
 
 pointerControls.addEventListener("unlock", () => {
@@ -224,12 +173,12 @@ pointerControls.addEventListener("unlock", () => {
 
     controls.enabled = true;
 
-    const direction = new THREE.Vector3();
+    const direction = new THREE.Vector3(); // using vector for 3 direction x,y,z AI genreted 
 
-    camera.getWorldDirection(direction);
+    camera.getWorldDirection(direction); // the camera is looking towards a point in front of it. The direction vector tells us which way it is facing.
 
     controls.target.copy(camera.position).add(
-        direction.multiplyScalar(5)
+        direction.multiplyScalar(5) // 5 unit larger the vector 
     );
 
     controls.update();
@@ -237,27 +186,28 @@ pointerControls.addEventListener("unlock", () => {
     updateCameraButtons();
 });
 
-// ==========================================
 // FIRST-PERSON MOVEMENT
-// ==========================================
-
 window.addEventListener("keydown", event => {
     if (!firstPersonMode) return;
 
     switch (event.code) {
         case "KeyW":
+        case "Arrowup":
             movementKeys.forward = true;
             break;
 
         case "KeyS":
+        case "ArrowDown":
             movementKeys.backward = true;
             break;
 
         case "KeyA":
+        case "ArrowLeft":
             movementKeys.left = true;
             break;
 
         case "KeyD":
+        case "ArrowRight":
             movementKeys.right = true;
             break;
     }
@@ -266,43 +216,41 @@ window.addEventListener("keydown", event => {
 window.addEventListener("keyup", event => {
     switch (event.code) {
         case "KeyW":
+        case "Arrowup":
             movementKeys.forward = false;
             break;
 
         case "KeyS":
+        case "ArrowDown":
             movementKeys.backward = false;
             break;
 
         case "KeyA":
-            movementKeys.left = false;
+        case "ArrowLeft":
+        movementKeys.left = false;
             break;
 
         case "KeyD":
+        case "ArrowRight":
             movementKeys.right = false;
             break;
     }
 });
-
-// ==========================================
+// whole piece of code is ai genereted without that person is getting stuck many probles were occuring 
 // COLLISION DETECTION
-// ==========================================
-
 function circleIntersectsBoxXZ(x, z, radius, box) {
     const closestX = THREE.MathUtils.clamp(
         x,
         box.min.x,
         box.max.x
     );
-
     const closestZ = THREE.MathUtils.clamp(
         z,
         box.min.z,
         box.max.z
     );
-
     const dx = x - closestX;
     const dz = z - closestZ;
-
     return dx * dx + dz * dz < radius * radius;
 }
 
@@ -336,7 +284,7 @@ function canMoveTo(x, z) {
         // Ignore wall pieces above the player's reachable body height.
         // This is essential for walking through doorways with a lintel.
         const playerBottom = 0.1;
-        const playerTop = eyeHeight + 0.5;
+        const playerTop = eyeHeight + 0.3;
 
         if (
             wallBox.max.y <= playerBottom ||
@@ -416,10 +364,7 @@ function updateFirstPersonMovement(delta) {
     }
 }
 
-// ==========================================
 // HOUSE MODEL
-// ==========================================
-
 const roomColors = {
     living: "#e6c9a8",
     bedroom: "#b5d8f0",
@@ -439,10 +384,8 @@ const DOOR_HEIGHT = 7;
 const DOOR_THICKNESS = 0.12;
 const EPSILON = 0.001;
 
-// ==========================================
-// WALL GENERATION
-// ==========================================
 
+// WALL GENERATION
 function getHouseWalls(rooms) {
     const horizontal = new Map();
     const vertical = new Map();
@@ -515,9 +458,7 @@ function getHouseWalls(rooms) {
     ];
 }
 
-// ==========================================
 // DOOR AND WINDOW POSITIONS
-// ==========================================
 
 function getDoorPosition(door, room) {
     if (door.wall === "top") {
@@ -832,9 +773,7 @@ function createWindowFrame(wall, opening) {
     );
 }
 
-// ==========================================
 // WALLS WITH DOORS AND WINDOWS
-// ==========================================
 
 function createWallWithDoors(wall, house, wallMaterial) {
     const doors = getDoorsForWall(wall, house);
@@ -938,10 +877,8 @@ function createWallWithDoors(wall, house, wallMaterial) {
     }
 }
 
-// ==========================================
-// DOOR PANEL
-// ==========================================
 
+// DOOR PANEL
 function createDoorPanel(wall, opening) {
     const door = opening.door;
     const width = opening.end - opening.start;
@@ -1025,10 +962,7 @@ function createDoorPanel(wall, opening) {
 
     collisionMeshes.push(panel);
 }
-
-// ==========================================
 // UPDATE 3D HOUSE
-// ==========================================
 
 function update3DHouse(house) {
     if (!house || !house.plot || !house.rooms) return;
@@ -1127,9 +1061,9 @@ function update3DHouse(house) {
 
 window.update3DHouse = update3DHouse;
 
-// ==========================================
+
 // RESIZE
-// ==========================================
+
 
 window.addEventListener("resize", () => {
     const width = container.clientWidth;
@@ -1142,11 +1076,7 @@ window.addEventListener("resize", () => {
 
     renderer.setSize(width, height);
 });
-
-// ==========================================
 // ANIMATION LOOP
-// ==========================================
-
 function animate() {
     requestAnimationFrame(animate);
 
